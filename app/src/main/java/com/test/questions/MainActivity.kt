@@ -21,9 +21,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.navigation3.runtime.EntryProviderScope
+import androidx.navigation3.runtime.NavKey
+import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.ui.NavDisplay
 import com.test.questions.ui.theme.QuestionsTheme
+import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -33,23 +45,22 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
-}
 
-@PreviewScreenSizes
-@Composable
-fun QuestionsApp() {
-    var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
-
-    Box(modifier = Modifier.fillMaxSize()){
-        Text("Testing")
+    @PreviewScreenSizes
+    @Composable
+    fun QuestionsApp() {
+        val backStack = rememberNavBackStack()
+        Scaffold {
+            NavDisplay(
+                modifier = Modifier.padding(it),
+                backStack = backStack,
+                onBack = {
+                    backStack.removeLastOrNull()
+                },
+                entryProvider = entryProvider {
+                    entryBuilders.forEach {build -> this.build() }
+                }
+            )
+        }
     }
-}
-
-enum class AppDestinations(
-    val label: String,
-    val icon: Int,
-) {
-    HOME("Home", R.drawable.ic_home),
-    FAVORITES("Favorites", R.drawable.ic_favorite),
-    PROFILE("Profile", R.drawable.ic_account_box),
 }

@@ -2,8 +2,8 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.jetbrains.kotlin.serialization)
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.ksp)
 }
 
 android {
@@ -38,6 +38,7 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -71,5 +72,9 @@ dependencies {
 
     implementation("androidx.hilt:hilt-lifecycle-viewmodel:1.4.0")
     ksp("androidx.hilt:hilt-compiler:1.4.0")
+
+
+    // modules dependency
+    implementation(project(":core"))
 
 }
