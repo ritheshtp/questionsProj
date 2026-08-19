@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import timber.log.Timber
 import javax.inject.Inject
 
 sealed class QuestionUiState {
@@ -44,7 +45,7 @@ class QuestionContainerViewModel @Inject constructor(
                 val questionData = json.decodeFromString<QuestionData>(jsonString)
                 _uiState.value = QuestionUiState.Ready(questionData.questions)
             } catch (e: Exception) {
-                // Handle error
+                Timber.tag("ERROR").d("loadQuestions: ${e.message}")
             }
         }
     }
