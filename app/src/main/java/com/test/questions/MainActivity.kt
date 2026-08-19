@@ -12,6 +12,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -21,11 +22,15 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.test.questions.navigation.Navigator
+import com.test.questions.navigation.rememberSharedViewModelStoreNavEntryDecorator
 import com.test.questions.ui.theme.QuestionsTheme
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -35,6 +40,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var entryBuilders: Set<@JvmSuppressWildcards EntryProviderScope<NavKey>.() -> Unit>
+
+    @Inject
+    lateinit var navigator: Navigator
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -50,6 +58,17 @@ class MainActivity : ComponentActivity() {
     @Composable
     fun QuestionsApp() {
         val backStack = rememberNavBackStack()
+        LaunchedEffect(Unit) {
+            navigator.setHandlers(
+                navigate = {
+                    backStack.add(it)
+                },
+                back = {
+                    backStack.removeLastOrNull()
+                }
+            )
+        }
+
         Scaffold {
             NavDisplay(
                 modifier = Modifier.padding(it),
@@ -59,7 +78,12 @@ class MainActivity : ComponentActivity() {
                 },
                 entryProvider = entryProvider {
                     entryBuilders.forEach {build -> this.build() }
-                }
+                },
+                entryDecorators = listOf(
+                    rememberSaveableStateHolderNavEntryDecorator(),
+                    rememberViewModelStoreNavEntryDecorator(),
+                    rememberSharedViewModelStoreNavEntryDecorator()
+                    )
             )
         }
     }

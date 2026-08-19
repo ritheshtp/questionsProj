@@ -1,0 +1,104 @@
+{
+  "questions": [
+    {
+      "question": "What is the capital of France?",
+      "options": [
+        "Berlin",
+        "Madrid",
+        "Paris",
+        "Rome"
+      ],
+      "answer": 3
+    },
+    {
+      "question": "Which planet is known as the Red Planet?",
+      "options": [
+        "Venus",
+        "Mars",
+        "Jupiter",
+        "Mercury"
+      ],
+      "answer": 2
+    },
+    {
+      "question": "What is 12 × 8?",
+      "options": [
+        "86",
+        "96",
+        "108",
+        "112"
+      ],
+      "answer": 2
+    },
+    {
+      "question": "Which is the largest ocean on Earth?",
+      "options": [
+        "Atlantic Ocean",
+        "Indian Ocean",
+        "Arctic Ocean",
+        "Pacific Ocean"
+      ],
+      "answer": 4
+    },
+    {
+      "question": "Who wrote 'Romeo and Juliet'?",
+      "options": [
+        "Charles Dickens",
+        "William Shakespeare",
+        "Mark Twain",
+        "Jane Austen"
+      ],
+      "answer": "William Shakespeare"
+    },
+    {
+      "question": "What gas do plants primarily absorb during photosynthesis?",
+      "options": [
+        "Oxygen",
+        "Nitrogen",
+        "Carbon dioxide",
+        "Hydrogen"
+      ],
+      "answer": "Carbon dioxide"
+    },
+    {
+      "question": "How many continents are there?",
+      "options": [
+        "5",
+        "6",
+        "7",
+        "8"
+      ],
+      "answer": "7"
+    },
+    {
+      "question": "Which is the fastest land animal?",
+      "options": [
+        "Lion",
+        "Cheetah",
+        "Horse",
+        "Leopard"
+      ],
+      "answer": "Cheetah"
+    },
+    {
+      "question": "What is the chemical symbol for gold?",
+      "options": [
+        "Ag",
+        "Fe",
+        "Au",
+        "Cu"
+      ],
+      "answer": "Au"
+    },
+    {
+      "question": "Which country is famous for the Great Pyramid of Giza?",
+      "options": [
+        "Greece",
+        "Egypt",
+        "Mexico",
+        "Turkey"
+      ],
+      "answer": "Egypt"
+    }
+  ]
+}
