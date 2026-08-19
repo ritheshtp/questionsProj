@@ -7,7 +7,8 @@ import kotlinx.serialization.json.JsonElement
 data class Question(
     val question: String,
     val options: List<String>,
-    val answer: JsonElement
+    val answer: Int,
+    var userAnswer: Int = -1
 )
 
 @Serializable

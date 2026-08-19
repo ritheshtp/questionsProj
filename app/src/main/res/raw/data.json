@@ -48,7 +48,7 @@
         "Mark Twain",
         "Jane Austen"
       ],
-      "answer": "William Shakespeare"
+      "answer": 2
     },
     {
       "question": "What gas do plants primarily absorb during photosynthesis?",
@@ -58,7 +58,7 @@
         "Carbon dioxide",
         "Hydrogen"
       ],
-      "answer": "Carbon dioxide"
+      "answer": 3
     },
     {
       "question": "How many continents are there?",
@@ -68,7 +68,7 @@
         "7",
         "8"
       ],
-      "answer": "7"
+      "answer": 3
     },
     {
       "question": "Which is the fastest land animal?",
@@ -78,7 +78,7 @@
         "Horse",
         "Leopard"
       ],
-      "answer": "Cheetah"
+      "answer": 2
     },
     {
       "question": "What is the chemical symbol for gold?",
@@ -88,7 +88,7 @@
         "Au",
         "Cu"
       ],
-      "answer": "Au"
+      "answer": 3
     },
     {
       "question": "Which country is famous for the Great Pyramid of Giza?",
@@ -98,7 +98,7 @@
         "Mexico",
         "Turkey"
       ],
-      "answer": "Egypt"
+      "answer": 2
     }
   ]
 }

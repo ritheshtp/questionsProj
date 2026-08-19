@@ -1,6 +1,7 @@
 package com.test.questions.feature.load.viewModel
 
 import android.content.Context
+import androidx.collection.buildIntList
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.rith.core.model.Question
@@ -24,7 +25,8 @@ sealed class QuestionUiState {
 
 @HiltViewModel
 class QuestionContainerViewModel @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val json: Json
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<QuestionUiState>(QuestionUiState.Loading)
@@ -36,12 +38,10 @@ class QuestionContainerViewModel @Inject constructor(
 
     private fun loadQuestions() {
         viewModelScope.launch {
-            // Simulate loading
-            delay(1000)
             try {
                 val jsonString = context.resources.openRawResource(R.raw.data)
                     .bufferedReader().use { it.readText() }
-                val questionData = Json.decodeFromString<QuestionData>(jsonString)
+                val questionData = json.decodeFromString<QuestionData>(jsonString)
                 _uiState.value = QuestionUiState.Ready(questionData.questions)
             } catch (e: Exception) {
                 // Handle error
