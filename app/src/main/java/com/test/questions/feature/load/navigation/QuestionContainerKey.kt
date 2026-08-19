@@ -11,7 +11,9 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.components.ActivityComponent
 import dagger.multibindings.IntoSet
+import kotlinx.serialization.Serializable
 
+@Serializable
 object QuestionContainer: NavKey
 
 @Module

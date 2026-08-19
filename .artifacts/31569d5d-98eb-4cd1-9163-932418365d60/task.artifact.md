@@ -1,6 +1,0 @@
-- [x] Research the error and identify the cause.
-- [x] Create an implementation plan and get approval.
-- [x] Update `gradle.properties` to suppress the strict source set check.
-- [/] Update `compileSdk` and `targetSdk` to 37 to resolve dependency requirements.
-- [ ] Verify the fix by building the project.
-- [ ] Create a walkthrough of the changes.

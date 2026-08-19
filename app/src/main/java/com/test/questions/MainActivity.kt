@@ -12,11 +12,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -29,6 +32,7 @@ import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
+import com.test.questions.feature.load.navigation.QuestionContainer
 import com.test.questions.navigation.Navigator
 import com.test.questions.navigation.rememberSharedViewModelStoreNavEntryDecorator
 import com.test.questions.ui.theme.QuestionsTheme
@@ -49,7 +53,9 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             QuestionsTheme {
-                QuestionsApp()
+                CompositionLocalProvider(LocalEntryBuilders provides entryBuilders) {
+                    QuestionsApp()
+                }
             }
         }
     }
@@ -57,7 +63,7 @@ class MainActivity : ComponentActivity() {
     @PreviewScreenSizes
     @Composable
     fun QuestionsApp() {
-        val backStack = rememberNavBackStack()
+        val backStack = rememberNavBackStack(QuestionContainer)
         LaunchedEffect(Unit) {
             navigator.setHandlers(
                 navigate = {
@@ -88,3 +94,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
+val LocalEntryBuilders =
+    staticCompositionLocalOf<Set<EntryProviderScope<NavKey>.() -> Unit>> {
+        error("No LocalEntryBuilders provided!")
+    }

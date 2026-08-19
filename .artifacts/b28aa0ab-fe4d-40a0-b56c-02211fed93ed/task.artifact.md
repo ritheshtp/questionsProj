@@ -1,4 +1,0 @@
-- [x] Update `libs.versions.toml` with Hilt and Kotlinx Serialization JSON dependencies
-- [x] Update `core/build.gradle.kts` to include Hilt, KSP, and JSON dependencies
-- [x] Create `SingletonModule.kt` in `core` module providing `Json` instance
-- [x] Verify build and module setup
