@@ -23,7 +23,9 @@ object LoadScreenModule {
     @IntoSet
     @Provides
     fun provideEntryProvider(navigator: Navigator): EntryProviderScope<NavKey>.() -> Unit = {
-        entry<QuestionContainer> {
+        entry<QuestionContainer>(
+            clazzContentKey = {key -> key.toString() }
+        ) {
             val viewModel = hiltViewModel<QuestionContainerViewModel>()
             QuestionContainerScreen(viewModel)
         }

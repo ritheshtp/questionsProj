@@ -19,6 +19,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import com.test.questions.feature.result.navigation.ResultKey
+import com.test.questions.navigation.Navigator
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -35,7 +37,8 @@ enum class QuizMode {
 @HiltViewModel
 class QuestionContainerViewModel @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val json: Json
+    private val json: Json,
+    private val navigator: Navigator
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<QuestionUiState>(QuestionUiState.Loading)
@@ -140,15 +143,12 @@ class QuestionContainerViewModel @Inject constructor(
             if (currentState is QuestionUiState.InProgress) {
                 val isLastQuestion = _currentUserQuestion.value >= currentState.questions.size - 1
                 if (isLastQuestion) {
-                    if (!isAutomatic) {
-                        // Manual Finish: switch to Review mode and stay on current question
-                        _quizMode.value = QuizMode.REVIEW
-                        _isBusy.value = false
-                        // We don't reset _showCorrectAnswer because Review mode shows it
-                    } else {
-                        // Automatic expiry on last question: stay here, show result
-                        _isBusy.value = false
+                    val correctCount = currentState.questions.indices.count { index ->
+                        userQuestionAnswers.value[index] == currentState.questions[index].answer
                     }
+                    _quizMode.value = QuizMode.REVIEW
+                    navigator.navigate(ResultKey(correctCount, currentState.questions.size))
+                    _isBusy.value = false
                 } else {
                     // Move to next question
                     updateCurrentQuestion(_currentUserQuestion.value + 1)
