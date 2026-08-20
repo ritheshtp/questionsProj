@@ -63,6 +63,12 @@ class QuestionContainerViewModel @Inject constructor(
     private val _quizMode = MutableStateFlow(QuizMode.ANSWER)
     val quizMode: StateFlow<QuizMode> = _quizMode.asStateFlow()
 
+    private val _streakCount = MutableStateFlow(0)
+    val streakCount: StateFlow<Int> = _streakCount.asStateFlow()
+
+    private val _longestStreak = MutableStateFlow(0)
+    val longestStreak: StateFlow<Int> = _longestStreak.asStateFlow()
+
     private var timerJob: Job? = null
     private val MAX_TIME = 10L
 
@@ -121,7 +127,7 @@ class QuestionContainerViewModel @Inject constructor(
             }
             
             if (!_isBusy.value) {
-                proceedToNextQuestionWithDelay(isAutomatic = true)
+                proceedToNextQuestionWithDelay()
             }
         }
     }
@@ -130,7 +136,7 @@ class QuestionContainerViewModel @Inject constructor(
         timerJob?.cancel()
     }
 
-    fun proceedToNextQuestionWithDelay(isAutomatic: Boolean = false,delayAmount: Int = 1000) {
+    fun proceedToNextQuestionWithDelay(delayAmount: Int = 1000) {
         if (_isBusy.value) return
         
         viewModelScope.launch {
@@ -138,20 +144,36 @@ class QuestionContainerViewModel @Inject constructor(
             stopTimer()
             _showCorrectAnswer.value = true
             
-            delay(delayAmount.milliseconds)
-            
             val currentState = _uiState.value
             if (currentState is QuestionUiState.InProgress) {
-                val isLastQuestion = _currentUserQuestion.value >= currentState.questions.size - 1
-                if (isLastQuestion) {
-                    val correctCount = currentState.questions.indices.count { index ->
-                        userQuestionAnswers.value[index] == currentState.questions[index].answer
+                val currentIndex = _currentUserQuestion.value
+                val question = currentState.questions[currentIndex]
+                val userAnswer = _userQuestionAnswers.value[currentIndex]
+                
+                if (userAnswer != null && userAnswer == question.answer) {
+                    _streakCount.value += 1
+                    if (_streakCount.value > _longestStreak.value) {
+                        _longestStreak.value = _streakCount.value
                     }
-                    val skippedCount = currentState.questions.indices.count { index ->
+                } else {
+                    _streakCount.value = 0
+                }
+            }
+
+            delay(delayAmount.milliseconds)
+            
+            val finalState = _uiState.value
+            if (finalState is QuestionUiState.InProgress) {
+                val isLastQuestion = _currentUserQuestion.value >= finalState.questions.size - 1
+                if (isLastQuestion) {
+                    val correctCount = finalState.questions.indices.count { index ->
+                        userQuestionAnswers.value[index] == finalState.questions[index].answer
+                    }
+                    val skippedCount = finalState.questions.indices.count { index ->
                         !userQuestionAnswers.value.containsKey(index) || userQuestionAnswers.value[index] == -1
                     }
                     _quizMode.value = QuizMode.REVIEW
-                    navigator.navigate(ResultKey(correctCount, currentState.questions.size, skippedCount))
+                    navigator.navigate(ResultKey(correctCount, finalState.questions.size, skippedCount, longestStreak.value))
                     _isBusy.value = false
                 } else {
                     updateCurrentQuestion(_currentUserQuestion.value + 1)
@@ -174,6 +196,8 @@ class QuestionContainerViewModel @Inject constructor(
         _isBusy.value = false
         _showCorrectAnswer.value = false
         _quizMode.value = QuizMode.ANSWER
+        _streakCount.value = 0
+        _longestStreak.value = 0
         
         if (questions.isNotEmpty()) {
             _uiState.value = QuestionUiState.Ready(questions)

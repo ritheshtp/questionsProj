@@ -57,6 +57,10 @@ import com.test.questions.navigation.LocalSharedViewModelStoreOwner
 import com.test.questions.LocalEntryBuilders
 import com.test.questions.ui.theme.QuestionsTheme
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TopAppBar
@@ -82,6 +86,7 @@ fun QuestionContainerScreen(
     val timerProgress by viewModel.timerProgress.collectAsStateWithLifecycle()
     val isBusy by viewModel.isBusy.collectAsStateWithLifecycle()
     val quizMode by viewModel.quizMode.collectAsStateWithLifecycle()
+    val streakCount by viewModel.streakCount.collectAsStateWithLifecycle()
 
     val hasAnswered = remember(userAnswers, currentIndex) {
         userAnswers.containsKey(currentIndex)
@@ -162,6 +167,9 @@ fun QuestionContainerScreen(
                                             style = MaterialTheme.typography.titleMedium
                                         )
                                     },
+                                    actions = {
+                                        if(quizMode == QuizMode.ANSWER) StreakWidget(streakCount = streakCount)
+                                    },
                                     colors = TopAppBarDefaults.topAppBarColors(
                                         containerColor = MaterialTheme.colorScheme.surface,
                                         titleContentColor = MaterialTheme.colorScheme.onSurface
@@ -222,13 +230,13 @@ fun QuestionContainerScreen(
                                     Button(
                                         onClick = {
                                             if (quizMode == QuizMode.ANSWER) {
-                                                viewModel.proceedToNextQuestionWithDelay(isAutomatic = false)
+                                                viewModel.proceedToNextQuestionWithDelay()
                                             } else {
                                                 if (currentIndex < uiState.questions.size - 1) {
                                                     viewModel.updateCurrentQuestion(currentIndex + 1)
                                                 }
                                                 else{
-                                                    viewModel.proceedToNextQuestionWithDelay(isAutomatic = false, delayAmount = 0)
+                                                    viewModel.proceedToNextQuestionWithDelay( delayAmount = 0)
                                                 }
                                             }
                                         },
@@ -287,6 +295,55 @@ fun QuestionContainerScreen(
                                         slideOutHorizontally(targetOffsetX = { it },
                                             animationSpec = tween(600))
                             },
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun StreakWidget(streakCount: Int) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.padding(end = 16.dp)
+    ) {
+        val streakColor by animateColorAsState(
+            targetValue = if (streakCount > 0) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.outline,
+            animationSpec = tween(500),
+            label = "StreakColor"
+        )
+
+        Text(
+            text = "🔥 $streakCount",
+            style = MaterialTheme.typography.titleMedium,
+            color = streakColor,
+            textAlign = TextAlign.Center
+        )
+
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            repeat(3) { index ->
+                val isLit = streakCount > index
+                val badgeColor by animateColorAsState(
+                    targetValue = if (isLit) MaterialTheme.colorScheme.tertiaryContainer else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    animationSpec = tween(500),
+                    label = "BadgeColor"
+                )
+                Box(
+                    modifier = Modifier
+                        .size(16.dp)
+                        .clip(CircleShape)
+                        .background(badgeColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isLit) {
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.onTertiaryContainer)
                         )
                     }
                 }

@@ -26,7 +26,12 @@ import dagger.multibindings.IntoSet
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class ResultKey(val correctCount: Int, val totalCount: Int, val skippedCount: Int) : NavKey
+data class ResultKey(
+    val correctCount: Int,
+    val totalCount: Int,
+    val skippedCount: Int,
+    val longestStreak: Int
+) : NavKey
 
 @Module
 @InstallIn(ActivityComponent::class)
@@ -66,6 +71,7 @@ object ResultScreenModule {
                 correctCount = key.correctCount,
                 totalCount = key.totalCount,
                 skippedCount = key.skippedCount,
+                longestStreak = key.longestStreak,
                 onFinish = {
                     navigator.goBack()
                     viewModel.resetQuiz()

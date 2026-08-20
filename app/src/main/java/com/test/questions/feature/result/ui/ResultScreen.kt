@@ -26,6 +26,7 @@ fun ResultScreen(
     correctCount: Int,
     totalCount: Int,
     skippedCount: Int,
+    longestStreak: Int,
     onFinish: () -> Unit,
     onReview: () -> Unit
 ) {
@@ -96,6 +97,16 @@ fun ResultScreen(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+
+                    if (longestStreak > 1) {
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "🔥 Longest Streak: $longestStreak",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.tertiary,
+                            textAlign = TextAlign.Center
+                        )
+                    }
                 }
             }
             
@@ -138,6 +149,13 @@ fun ResultScreen(
 @Composable
 private fun ResultScreenPreview() {
     QuestionsTheme {
-        ResultScreen(correctCount = 8, totalCount = 10, skippedCount = 1, onFinish = {}, onReview = {})
+        ResultScreen(
+            correctCount = 8,
+            totalCount = 10,
+            skippedCount = 1,
+            longestStreak = 3,
+            onFinish = {},
+            onReview = {}
+        )
     }
 }
