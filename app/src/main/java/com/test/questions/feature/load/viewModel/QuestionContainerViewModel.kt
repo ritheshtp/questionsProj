@@ -146,8 +146,11 @@ class QuestionContainerViewModel @Inject constructor(
                     val correctCount = currentState.questions.indices.count { index ->
                         userQuestionAnswers.value[index] == currentState.questions[index].answer
                     }
+                    val skippedCount = currentState.questions.indices.count { index ->
+                        !userQuestionAnswers.value.containsKey(index) || userQuestionAnswers.value[index] == -1
+                    }
                     _quizMode.value = QuizMode.REVIEW
-                    navigator.navigate(ResultKey(correctCount, currentState.questions.size))
+                    navigator.navigate(ResultKey(correctCount, currentState.questions.size, skippedCount))
                     _isBusy.value = false
                 } else {
                     // Move to next question

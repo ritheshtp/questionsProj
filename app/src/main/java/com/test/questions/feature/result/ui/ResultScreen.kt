@@ -25,6 +25,7 @@ import com.test.questions.ui.theme.QuestionsTheme
 fun ResultScreen(
     correctCount: Int,
     totalCount: Int,
+    skippedCount: Int,
     onFinish: () -> Unit,
     onReview: () -> Unit
 ) {
@@ -70,6 +71,19 @@ fun ResultScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Text(
+                        text = "$skippedCount",
+                        style = MaterialTheme.typography.displayMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Text(
+                        text = "Skipped Questions",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     Text(
@@ -124,6 +138,6 @@ fun ResultScreen(
 @Composable
 private fun ResultScreenPreview() {
     QuestionsTheme {
-        ResultScreen(correctCount = 8, totalCount = 10, onFinish = {}, onReview = {})
+        ResultScreen(correctCount = 8, totalCount = 10, skippedCount = 1, onFinish = {}, onReview = {})
     }
 }
