@@ -53,7 +53,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +64,8 @@ fun QuestionContainerScreen(
     onClick: () -> Unit = {},
 ) {
     val entryBuilders = LocalEntryBuilders.current
-    val state by viewModel.uiState.collectAsState()
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val currentIndex by viewModel.currentUserQuestion.collectAsStateWithLifecycle()
 
     AnimatedContent(
         targetState = state,
@@ -92,8 +95,25 @@ fun QuestionContainerScreen(
 
             is QuestionUiState.InProgress -> {
                 val nestedBackStack = rememberNavBackStack(QuestionKey(0))
-                var currentIndex by rememberSaveable { mutableIntStateOf(0) }
                 val totalQuestions = remember { uiState.questions.size }
+
+                LaunchedEffect(currentIndex) {
+                    val key = QuestionKey(currentIndex)
+                    val current = nestedBackStack.lastOrNull() as? QuestionKey
+                    if (current?.questionId != null && current?.questionId != currentIndex) {
+                        if(currentIndex < current.questionId){
+                            (nestedBackStack as MutableList<NavKey>).removeAt(
+                                nestedBackStack.size - 1
+                            )
+                        } else {
+                            (nestedBackStack as MutableList<NavKey>).add(
+                                QuestionKey(
+                                    currentIndex
+                                )
+                            )
+                        }
+                    }
+                }
 
                 val currentOwner = LocalViewModelStoreOwner.current!!
                 CompositionLocalProvider(LocalSharedViewModelStoreOwner provides currentOwner) {
@@ -130,10 +150,7 @@ fun QuestionContainerScreen(
                                 FilledTonalButton(
                                     onClick = {
                                         if (currentIndex > 0) {
-                                            currentIndex--
-                                            (nestedBackStack as MutableList<NavKey>).removeAt(
-                                                nestedBackStack.size - 1
-                                            )
+                                            viewModel.updateCurrentQuestion(currentIndex - 1)
                                         }
                                     },
                                     enabled = currentIndex > 0,
@@ -145,12 +162,7 @@ fun QuestionContainerScreen(
                                 Button(
                                     onClick = {
                                         if (currentIndex < uiState.questions.size - 1) {
-                                            currentIndex++
-                                            (nestedBackStack as MutableList<NavKey>).add(
-                                                QuestionKey(
-                                                    currentIndex
-                                                )
-                                            )
+                                            viewModel.updateCurrentQuestion(currentIndex + 1)
                                         }
                                     },
                                     enabled = currentIndex < uiState.questions.size - 1,
@@ -171,10 +183,7 @@ fun QuestionContainerScreen(
                             },
                             onBack = {
                                 if (currentIndex > 0) {
-                                    currentIndex--
-                                    (nestedBackStack as MutableList<NavKey>).removeAt(
-                                        nestedBackStack.size - 1
-                                    )
+                                    viewModel.updateCurrentQuestion(currentIndex - 1)
                                 }
                             },
                             transitionSpec = {

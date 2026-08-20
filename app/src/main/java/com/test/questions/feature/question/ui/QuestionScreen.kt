@@ -33,6 +33,7 @@ fun QuestionScreen(
     options: List<String>,
     userAnswer: Int,
     correctAnswer: Int,
+    timeLeft: Int,
     onAnswerSelected: (Int) -> Unit
 ) {
     Column(
@@ -41,25 +42,47 @@ fun QuestionScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        ElevatedCard(
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
-            )
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = question,
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(24.dp)
-            )
+            ElevatedCard(
+                modifier = Modifier.weight(1f),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Text(
+                    text = question,
+                    style = MaterialTheme.typography.headlineSmall,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(24.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.size(16.dp))
+
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Text(
+                    text = "$timeLeft",
+                    style = MaterialTheme.typography.displaySmall,
+                    color = if (timeLeft <= 3) Color.Red else MaterialTheme.colorScheme.primary,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "sec",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
 
         Spacer(modifier = Modifier.size(8.dp))
 
         options.forEachIndexed { index, option ->
             val isSelected = userAnswer == index
-            val isCorrect = index  == correctAnswer
+            val isCorrect = index == correctAnswer
             val isWrongSelection = isSelected && !isCorrect
             val showCorrect = (userAnswer != -1) && isCorrect
 
@@ -77,7 +100,7 @@ fun QuestionScreen(
             }
 
             OutlinedCard(
-                onClick = { if (userAnswer == -1) onAnswerSelected(index) },
+                onClick = { if (timeLeft > 0) onAnswerSelected(index) },
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(
                     width = if (isSelected || showCorrect) 2.dp else 1.dp,
@@ -86,7 +109,7 @@ fun QuestionScreen(
                 colors = CardDefaults.outlinedCardColors(
                     containerColor = containerColor
                 ),
-                enabled = userAnswer == -1
+                enabled = timeLeft > 0
             ) {
                 Row(
                     modifier = Modifier
