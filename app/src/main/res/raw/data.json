@@ -8,7 +8,7 @@
         "Paris",
         "Rome"
       ],
-      "answer": 3
+      "answer": 2
     },
     {
       "question": "Which planet is known as the Red Planet?",
@@ -18,7 +18,7 @@
         "Jupiter",
         "Mercury"
       ],
-      "answer": 2
+      "answer": 1
     },
     {
       "question": "What is 12 × 8?",
@@ -28,7 +28,7 @@
         "108",
         "112"
       ],
-      "answer": 2
+      "answer": 1
     },
     {
       "question": "Which is the largest ocean on Earth?",
@@ -38,7 +38,7 @@
         "Arctic Ocean",
         "Pacific Ocean"
       ],
-      "answer": 4
+      "answer": 3
     },
     {
       "question": "Who wrote 'Romeo and Juliet'?",
@@ -48,7 +48,7 @@
         "Mark Twain",
         "Jane Austen"
       ],
-      "answer": 2
+      "answer": 1
     },
     {
       "question": "What gas do plants primarily absorb during photosynthesis?",
@@ -58,7 +58,7 @@
         "Carbon dioxide",
         "Hydrogen"
       ],
-      "answer": 3
+      "answer": 2
     },
     {
       "question": "How many continents are there?",
@@ -68,7 +68,7 @@
         "7",
         "8"
       ],
-      "answer": 3
+      "answer": 2
     },
     {
       "question": "Which is the fastest land animal?",
@@ -78,7 +78,7 @@
         "Horse",
         "Leopard"
       ],
-      "answer": 2
+      "answer": 1
     },
     {
       "question": "What is the chemical symbol for gold?",
@@ -88,7 +88,7 @@
         "Au",
         "Cu"
       ],
-      "answer": 3
+      "answer": 2
     },
     {
       "question": "Which country is famous for the Great Pyramid of Giza?",
@@ -98,7 +98,7 @@
         "Mexico",
         "Turkey"
       ],
-      "answer": 2
+      "answer": 1
     }
   ]
 }

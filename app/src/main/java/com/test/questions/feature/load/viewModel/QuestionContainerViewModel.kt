@@ -32,6 +32,9 @@ class QuestionContainerViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow<QuestionUiState>(QuestionUiState.Loading)
     val uiState: StateFlow<QuestionUiState> = _uiState.asStateFlow()
+    val _userQuestionAnswers: MutableStateFlow<Map<Int, Int>> = MutableStateFlow(emptyMap());
+    val userQuestionAnswers: StateFlow<Map<Int, Int>> = _userQuestionAnswers.asStateFlow()
+
 
     init {
         loadQuestions()
@@ -54,6 +57,13 @@ class QuestionContainerViewModel @Inject constructor(
         val currentState = _uiState.value
         if (currentState is QuestionUiState.Ready) {
             _uiState.value = QuestionUiState.InProgress(currentState.questions)
+        }
+    }
+
+    fun updateUserAnswer(questionIndex: Int, answerIndex: Int) {
+        val currentState = _uiState.value
+        if (currentState is QuestionUiState.InProgress) {
+            _userQuestionAnswers.value += (questionIndex to answerIndex)
         }
     }
 }

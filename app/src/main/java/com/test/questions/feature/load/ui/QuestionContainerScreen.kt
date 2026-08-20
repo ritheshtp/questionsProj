@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
@@ -48,6 +49,13 @@ import com.test.questions.navigation.LocalSharedViewModelStoreOwner
 import com.test.questions.LocalEntryBuilders
 import com.test.questions.ui.theme.QuestionsTheme
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.remember
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuestionContainerScreen(
     viewModel: QuestionContainerViewModel,
@@ -85,10 +93,33 @@ fun QuestionContainerScreen(
             is QuestionUiState.InProgress -> {
                 val nestedBackStack = rememberNavBackStack(QuestionKey(0))
                 var currentIndex by rememberSaveable { mutableIntStateOf(0) }
+                val totalQuestions = remember { uiState.questions.size }
 
                 val currentOwner = LocalViewModelStoreOwner.current!!
                 CompositionLocalProvider(LocalSharedViewModelStoreOwner provides currentOwner) {
                     Scaffold(
+                        topBar = {
+                            Column {
+                                TopAppBar(
+                                    title = {
+                                        Text(
+                                            text = "Question ${currentIndex + 1} of $totalQuestions",
+                                            style = MaterialTheme.typography.titleMedium
+                                        )
+                                    },
+                                    colors = TopAppBarDefaults.topAppBarColors(
+                                        containerColor = MaterialTheme.colorScheme.surface,
+                                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                                    )
+                                )
+                                LinearProgressIndicator(
+                                    progress = { (currentIndex + 1).toFloat() / totalQuestions },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                )
+                            }
+                        },
                         bottomBar = {
                             Row(
                                 modifier = Modifier
@@ -96,7 +127,7 @@ fun QuestionContainerScreen(
                                     .padding(16.dp),
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Button(
+                                FilledTonalButton(
                                     onClick = {
                                         if (currentIndex > 0) {
                                             currentIndex--
@@ -105,10 +136,12 @@ fun QuestionContainerScreen(
                                             )
                                         }
                                     },
-                                    enabled = currentIndex > 0
+                                    enabled = currentIndex > 0,
+                                    modifier = Modifier.weight(1f)
                                 ) {
                                     Text("Previous")
                                 }
+                                Spacer(modifier = Modifier.width(16.dp))
                                 Button(
                                     onClick = {
                                         if (currentIndex < uiState.questions.size - 1) {
@@ -120,7 +153,8 @@ fun QuestionContainerScreen(
                                             )
                                         }
                                     },
-                                    enabled = currentIndex < uiState.questions.size - 1
+                                    enabled = currentIndex < uiState.questions.size - 1,
+                                    modifier = Modifier.weight(1f)
                                 ) {
                                     Text("Next")
                                 }
