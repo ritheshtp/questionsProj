@@ -1,7 +1,10 @@
 package com.test.questions.feature.load.ui
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
@@ -53,92 +56,116 @@ fun QuestionContainerScreen(
     val entryBuilders = LocalEntryBuilders.current
     val state by viewModel.uiState.collectAsState()
 
-    when (val uiState = state) {
-        is QuestionUiState.Loading -> {
-            LoadingScreen()
+    AnimatedContent(
+        targetState = state,
+        label = "QuestionContainerTransition",
+        transitionSpec = {
+            if (initialState is QuestionUiState.Ready && targetState is QuestionUiState.InProgress) {
+                slideInHorizontally(
+                    initialOffsetX = { it },
+                    animationSpec = tween(600)
+                ) togetherWith fadeOut(animationSpec = tween(600))
+            } else {
+                fadeIn(animationSpec = tween(300)) togetherWith fadeOut(animationSpec = tween(300))
+            }
         }
+    ) { uiState ->
+        when (uiState) {
+            is QuestionUiState.Loading -> {
+                LoadingScreen()
+            }
 
-        is QuestionUiState.Ready -> {
-            ReadyScreen(
-                questionCount = uiState.questions.size,
-                onStartClick = { viewModel.proceed() }
-            )
-        }
-        is QuestionUiState.InProgress -> {
-            val nestedBackStack = rememberNavBackStack(QuestionKey(0))
-            var currentIndex by rememberSaveable { mutableIntStateOf(0) }
+            is QuestionUiState.Ready -> {
+                ReadyScreen(
+                    questionCount = uiState.questions.size,
+                    onStartClick = { viewModel.proceed() }
+                )
+            }
 
-            val currentOwner = LocalViewModelStoreOwner.current!!
-            CompositionLocalProvider(LocalSharedViewModelStoreOwner provides currentOwner) {
-                Scaffold(
-                    bottomBar = {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Button(
-                                onClick = {
-                                    if (currentIndex > 0) {
-                                        currentIndex--
-                                        (nestedBackStack as MutableList<NavKey>).removeAt(nestedBackStack.size - 1)
-                                    }
-                                },
-                                enabled = currentIndex > 0
+            is QuestionUiState.InProgress -> {
+                val nestedBackStack = rememberNavBackStack(QuestionKey(0))
+                var currentIndex by rememberSaveable { mutableIntStateOf(0) }
+
+                val currentOwner = LocalViewModelStoreOwner.current!!
+                CompositionLocalProvider(LocalSharedViewModelStoreOwner provides currentOwner) {
+                    Scaffold(
+                        bottomBar = {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text("Previous")
-                            }
-                            Button(
-                                onClick = {
-                                    if (currentIndex < uiState.questions.size - 1) {
-                                        currentIndex++
-                                        (nestedBackStack as MutableList<NavKey>).add(QuestionKey(currentIndex))
-                                    }
-                                },
-                                enabled = currentIndex < uiState.questions.size - 1
-                            ) {
-                                Text("Next")
+                                Button(
+                                    onClick = {
+                                        if (currentIndex > 0) {
+                                            currentIndex--
+                                            (nestedBackStack as MutableList<NavKey>).removeAt(
+                                                nestedBackStack.size - 1
+                                            )
+                                        }
+                                    },
+                                    enabled = currentIndex > 0
+                                ) {
+                                    Text("Previous")
+                                }
+                                Button(
+                                    onClick = {
+                                        if (currentIndex < uiState.questions.size - 1) {
+                                            currentIndex++
+                                            (nestedBackStack as MutableList<NavKey>).add(
+                                                QuestionKey(
+                                                    currentIndex
+                                                )
+                                            )
+                                        }
+                                    },
+                                    enabled = currentIndex < uiState.questions.size - 1
+                                ) {
+                                    Text("Next")
+                                }
                             }
                         }
-                    }
-                ) { padding ->
-                    NavDisplay(
-                        modifier = Modifier.padding(padding),
-                        backStack = nestedBackStack,
-                        entryProvider = entryProvider {
-                            entryBuilders.forEach { builder ->
-                                builder.invoke(this)
-                            }
-                        },
-                        onBack = {
-                            if (currentIndex > 0) {
-                                currentIndex--
-                                (nestedBackStack as MutableList<NavKey>).removeAt(nestedBackStack.size - 1)
-                            }
-                        },
-                        transitionSpec = {
-                            slideInHorizontally(
-                                initialOffsetX = { it },
-                                animationSpec = tween(600)
-                            ) togetherWith
-                                    slideOutHorizontally(targetOffsetX = { -it },
-                                        animationSpec = tween(600)
+                    ) { padding ->
+                        NavDisplay(
+                            modifier = Modifier.padding(padding),
+                            backStack = nestedBackStack,
+                            entryProvider = entryProvider {
+                                entryBuilders.forEach { builder ->
+                                    builder.invoke(this)
+                                }
+                            },
+                            onBack = {
+                                if (currentIndex > 0) {
+                                    currentIndex--
+                                    (nestedBackStack as MutableList<NavKey>).removeAt(
+                                        nestedBackStack.size - 1
                                     )
-                        },
-                        popTransitionSpec = {
-                            slideInHorizontally(initialOffsetX = { -it },
-                                animationSpec = tween(600)) togetherWith
-                                    slideOutHorizontally(targetOffsetX = { it },
-                                        animationSpec = tween(600))
-                        },
-                        predictivePopTransitionSpec = {
-                            slideInHorizontally(initialOffsetX = { -it },
-                                animationSpec = tween(600)) togetherWith
-                                    slideOutHorizontally(targetOffsetX = { it },
-                                        animationSpec = tween(600))
-                        },
-                    )
+                                }
+                            },
+                            transitionSpec = {
+                                slideInHorizontally(
+                                    initialOffsetX = { it },
+                                    animationSpec = tween(600)
+                                ) togetherWith
+                                        slideOutHorizontally(targetOffsetX = { -it },
+                                            animationSpec = tween(600)
+                                        )
+                            },
+                            popTransitionSpec = {
+                                slideInHorizontally(initialOffsetX = { -it },
+                                    animationSpec = tween(600)) togetherWith
+                                        slideOutHorizontally(targetOffsetX = { it },
+                                            animationSpec = tween(600))
+                            },
+                            predictivePopTransitionSpec = {
+                                slideInHorizontally(initialOffsetX = { -it },
+                                    animationSpec = tween(600)) togetherWith
+                                        slideOutHorizontally(targetOffsetX = { it },
+                                            animationSpec = tween(600))
+                            },
+                        )
+                    }
                 }
             }
         }
