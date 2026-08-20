@@ -45,8 +45,28 @@ object QuestionScreenModule {
             val timeLeft by questionViewModel.timeLeft.collectAsStateWithLifecycle()
             val isTimerRunning by questionViewModel.isTimerRunning.collectAsStateWithLifecycle()
             val isTimerFinished by questionViewModel.isTimerFinished.collectAsStateWithLifecycle()
-            
-            val lifecycleOwner = LocalLifecycleOwner.current
+
+            LaunchedEffect(key.questionId) {
+                if (userAnswer == -1) {
+                    questionViewModel.startTimer()
+                }
+            }
+
+            LaunchedEffect(isTimerRunning, isTimerFinished) {
+                containerViewModel.setTimerStatus(isTimerRunning, isTimerFinished)
+            }
+
+            LaunchedEffect(Unit) {
+                questionViewModel.timerFinishedSignal.collect {
+                    val currentState = containerViewModel.uiState.value
+                    if (currentState is QuestionUiState.InProgress) {
+                        if (key.questionId < currentState.questions.size - 1) {
+                            containerViewModel.updateCurrentQuestion(key.questionId + 1)
+                        }
+                    }
+                }
+            }
+
             if (state is QuestionUiState.InProgress) {
                 (state as QuestionUiState.InProgress).questions.getOrNull(key.questionId)?.let { question ->
                     QuestionScreen(

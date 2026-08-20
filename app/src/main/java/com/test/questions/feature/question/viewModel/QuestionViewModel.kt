@@ -31,14 +31,7 @@ class QuestionViewModel @Inject constructor() : ViewModel() {
 
     private var timerJob: Job? = null
 
-    fun startTimer(initialAnswerSelected: Boolean) {
-        if (initialAnswerSelected) {
-            _isTimerRunning.value = false
-            _isTimerFinished.value = true // It IS finished (skipped)
-            _timeLeft.value = 0
-            return
-        }
-
+    fun startTimer() {
         if (timerJob != null) return
 
         timerJob = viewModelScope.launch {

@@ -82,8 +82,8 @@ fun QuestionScreen(
 
         options.forEachIndexed { index, option ->
             val isSelected = userAnswer == index
-            val isCorrect = index == correctAnswer
-            val isWrongSelection = isSelected && !isCorrect
+            val isCorrect = index == correctAnswer && timeLeft <= 0
+            val isWrongSelection = isSelected && !isCorrect && timeLeft <= 0
             val showCorrect = (userAnswer != -1) && isCorrect
 
             val borderColor = when {
@@ -96,6 +96,7 @@ fun QuestionScreen(
             val containerColor = when {
                 isWrongSelection -> Color.Red.copy(alpha = 0.1f)
                 showCorrect -> Color.Green.copy(alpha = 0.1f)
+                isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
                 else -> MaterialTheme.colorScheme.surface
             }
 

@@ -56,6 +56,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
+import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
+import com.test.questions.navigation.rememberSharedViewModelStoreNavEntryDecorator
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,6 +69,13 @@ fun QuestionContainerScreen(
     val entryBuilders = LocalEntryBuilders.current
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val currentIndex by viewModel.currentUserQuestion.collectAsStateWithLifecycle()
+    val userAnswers by viewModel.userQuestionAnswers.collectAsStateWithLifecycle()
+    val isTimerRunning by viewModel.isTimerRunning.collectAsStateWithLifecycle()
+    val isTimerFinished by viewModel.isTimerFinished.collectAsStateWithLifecycle()
+
+    val hasAnswered = remember(userAnswers, currentIndex) {
+        userAnswers.containsKey(currentIndex)
+    }
 
     AnimatedContent(
         targetState = state,
@@ -153,22 +163,26 @@ fun QuestionContainerScreen(
                                             viewModel.updateCurrentQuestion(currentIndex - 1)
                                         }
                                     },
-                                    enabled = currentIndex > 0,
+                                    enabled = currentIndex > 0 && !isTimerRunning,
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Text("Previous")
                                 }
-                                Spacer(modifier = Modifier.width(16.dp))
-                                Button(
-                                    onClick = {
-                                        if (currentIndex < uiState.questions.size - 1) {
-                                            viewModel.updateCurrentQuestion(currentIndex + 1)
-                                        }
-                                    },
-                                    enabled = currentIndex < uiState.questions.size - 1,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Next")
+                                if (hasAnswered || isTimerFinished) {
+                                    Spacer(modifier = Modifier.width(16.dp))
+                                    Button(
+                                        onClick = {
+                                            if (currentIndex < uiState.questions.size - 1) {
+                                                viewModel.updateCurrentQuestion(currentIndex + 1)
+                                            }
+                                        },
+                                        enabled = currentIndex < uiState.questions.size - 1,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Text("Next")
+                                    }
+                                } else {
+                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }
@@ -186,6 +200,11 @@ fun QuestionContainerScreen(
                                     viewModel.updateCurrentQuestion(currentIndex - 1)
                                 }
                             },
+                            entryDecorators = listOf(
+                                rememberSaveableStateHolderNavEntryDecorator(),
+                                rememberViewModelStoreNavEntryDecorator(),
+                                rememberSharedViewModelStoreNavEntryDecorator()
+                            ),
                             transitionSpec = {
                                 slideInHorizontally(
                                     initialOffsetX = { it },

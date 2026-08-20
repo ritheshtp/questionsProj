@@ -39,6 +39,11 @@ class QuestionContainerViewModel @Inject constructor(
 
     val currentUserQuestion: StateFlow<Int> = _currentUserQuestion.asStateFlow()
 
+    private val _isTimerRunning = MutableStateFlow(false)
+    val isTimerRunning: StateFlow<Boolean> = _isTimerRunning.asStateFlow()
+
+    private val _isTimerFinished = MutableStateFlow(false)
+    val isTimerFinished: StateFlow<Boolean> = _isTimerFinished.asStateFlow()
 
     init {
         loadQuestions()
@@ -73,5 +78,10 @@ class QuestionContainerViewModel @Inject constructor(
 
     fun updateCurrentQuestion(questionIndex: Int){
         _currentUserQuestion.value = questionIndex
+    }
+
+    fun setTimerStatus(isRunning: Boolean, isFinished: Boolean) {
+        _isTimerRunning.value = isRunning
+        _isTimerFinished.value = isFinished
     }
 }
