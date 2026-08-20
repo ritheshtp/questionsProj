@@ -67,6 +67,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import com.test.questions.navigation.rememberSharedViewModelStoreNavEntryDecorator
+import kotlin.math.abs
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,22 +115,37 @@ fun QuestionContainerScreen(
 
             is QuestionUiState.InProgress -> {
                 val nestedBackStack = rememberNavBackStack(QuestionKey(0))
-                val totalQuestions = remember { uiState.questions.size }
+                val totalQuestions = remember(uiState) { uiState.questions.size }
 
                 LaunchedEffect(currentIndex) {
-                    val key = QuestionKey(currentIndex)
                     val current = nestedBackStack.lastOrNull() as? QuestionKey
                     if (current?.questionId != null && current?.questionId != currentIndex) {
-                        if(currentIndex < current.questionId){
-                            (nestedBackStack as MutableList<NavKey>).removeAt(
-                                nestedBackStack.size - 1
-                            )
-                        } else {
-                            (nestedBackStack as MutableList<NavKey>).add(
-                                QuestionKey(
-                                    currentIndex
+                        val diff = abs(currentIndex - current.questionId)
+                        if(diff == 1){
+                            if(currentIndex < current.questionId){
+                                (nestedBackStack as MutableList<NavKey>).removeAt(
+                                    nestedBackStack.size - 1
                                 )
-                            )
+                            } else {
+                                (nestedBackStack as MutableList<NavKey>).add(
+                                    QuestionKey(
+                                        currentIndex
+                                    )
+                                )
+                            }
+                        }
+                        else {
+                            if(currentIndex < current.questionId){
+                                (nestedBackStack as MutableList<NavKey>).removeIf{
+                                    it as? QuestionKey != null && it.questionId > currentIndex
+                                }
+                            } else {
+                                (nestedBackStack as MutableList<NavKey>).addAll(
+                                    (current.questionId until currentIndex).map {
+                                        QuestionKey(it)
+                                    }
+                                )
+                            }
                         }
                     }
                 }

@@ -156,4 +156,26 @@ class QuestionContainerViewModel @Inject constructor(
             }
         }
     }
+
+    fun resetQuiz() {
+        stopTimer()
+        val questions = when (val state = _uiState.value) {
+            is QuestionUiState.InProgress -> state.questions
+            is QuestionUiState.Ready -> state.questions
+            else -> emptyList()
+        }
+        
+        _userQuestionAnswers.value = emptyMap()
+        _currentUserQuestion.value = 0
+        _timerProgress.value = 1f
+        _isBusy.value = false
+        _showCorrectAnswer.value = false
+        _quizMode.value = QuizMode.ANSWER
+        
+        if (questions.isNotEmpty()) {
+            _uiState.value = QuestionUiState.Ready(questions)
+        } else {
+            loadQuestions()
+        }
+    }
 }

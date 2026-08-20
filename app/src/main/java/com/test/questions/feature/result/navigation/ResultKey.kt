@@ -14,6 +14,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.test.questions.feature.load.navigation.QuestionContainer
 import com.test.questions.feature.load.viewModel.QuestionContainerViewModel
 import com.test.questions.feature.result.ui.ResultScreen
+import com.test.questions.navigation.LocalSharedViewModelStoreOwner
 import com.test.questions.navigation.Navigator
 import com.test.questions.navigation.SharedViewModelStoreNavEntryDecorator
 import com.test.questions.navigation.SharedViewModelStoreNavEntryDecorator.Companion.ParentKey
@@ -59,12 +60,14 @@ object ResultScreenModule {
                 put(ParentKey, QuestionContainer.toString())
             }
         ) { key ->
-            val viewModel = hiltViewModel<QuestionContainerViewModel>()
+            val parentOwner = LocalSharedViewModelStoreOwner.current
+            val viewModel = hiltViewModel<QuestionContainerViewModel>(viewModelStoreOwner = parentOwner)
             ResultScreen(
                 correctCount = key.correctCount,
                 totalCount = key.totalCount,
                 onFinish = {
                     navigator.goBack()
+                    viewModel.resetQuiz()
                 }
             )
         }
