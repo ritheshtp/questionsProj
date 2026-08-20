@@ -228,19 +228,20 @@ fun QuestionContainerScreen(
                                                     viewModel.updateCurrentQuestion(currentIndex + 1)
                                                 }
                                                 else{
-                                                    viewModel.proceedToNextQuestionWithDelay(isAutomatic = false,noDelay = true)
+                                                    viewModel.proceedToNextQuestionWithDelay(isAutomatic = false, delayAmount = 0)
                                                 }
                                             }
                                         },
                                         enabled = if (quizMode == QuizMode.ANSWER) {
-                                            (hasAnswered || timerProgress == 0f) && !isBusy
+                                            !isBusy
                                         } else {
                                             !isBusy
                                         },
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Text(
-                                            if (currentIndex < uiState.questions.size - 1) "Next" else "Finish"
+                                            if (currentIndex < uiState.questions.size - 1) "Next"
+                                            else "Finish"
                                         )
                                     }
                                 }

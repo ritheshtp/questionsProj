@@ -23,6 +23,7 @@ import com.test.questions.feature.result.navigation.ResultKey
 import com.test.questions.navigation.Navigator
 import timber.log.Timber
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 sealed class QuestionUiState {
     object Loading : QuestionUiState()
@@ -129,7 +130,7 @@ class QuestionContainerViewModel @Inject constructor(
         timerJob?.cancel()
     }
 
-    fun proceedToNextQuestionWithDelay(isAutomatic: Boolean = false,noDelay: Boolean = false) {
+    fun proceedToNextQuestionWithDelay(isAutomatic: Boolean = false,delayAmount: Int = 1000) {
         if (_isBusy.value) return
         
         viewModelScope.launch {
@@ -137,7 +138,7 @@ class QuestionContainerViewModel @Inject constructor(
             stopTimer()
             _showCorrectAnswer.value = true
             
-            if(!noDelay) delay(1000) // 1 second delay as requested
+            delay(delayAmount.milliseconds)
             
             val currentState = _uiState.value
             if (currentState is QuestionUiState.InProgress) {
@@ -153,7 +154,6 @@ class QuestionContainerViewModel @Inject constructor(
                     navigator.navigate(ResultKey(correctCount, currentState.questions.size, skippedCount))
                     _isBusy.value = false
                 } else {
-                    // Move to next question
                     updateCurrentQuestion(_currentUserQuestion.value + 1)
                 }
             }
