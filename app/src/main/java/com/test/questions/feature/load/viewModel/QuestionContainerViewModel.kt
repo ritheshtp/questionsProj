@@ -129,7 +129,7 @@ class QuestionContainerViewModel @Inject constructor(
         timerJob?.cancel()
     }
 
-    fun proceedToNextQuestionWithDelay(isAutomatic: Boolean = false) {
+    fun proceedToNextQuestionWithDelay(isAutomatic: Boolean = false,noDelay: Boolean = false) {
         if (_isBusy.value) return
         
         viewModelScope.launch {
@@ -137,7 +137,7 @@ class QuestionContainerViewModel @Inject constructor(
             stopTimer()
             _showCorrectAnswer.value = true
             
-            delay(1000) // 1 second delay as requested
+            if(!noDelay) delay(1000) // 1 second delay as requested
             
             val currentState = _uiState.value
             if (currentState is QuestionUiState.InProgress) {

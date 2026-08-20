@@ -25,7 +25,8 @@ import com.test.questions.ui.theme.QuestionsTheme
 fun ResultScreen(
     correctCount: Int,
     totalCount: Int,
-    onFinish: () -> Unit
+    onFinish: () -> Unit,
+    onReview: () -> Unit
 ) {
     val percentage = if (totalCount > 0) (correctCount.toFloat() / totalCount * 100).toInt() else 0
     
@@ -97,6 +98,24 @@ fun ResultScreen(
                     style = MaterialTheme.typography.titleLarge
                 )
             }
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            Button(
+                onClick = onReview,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary,
+                    contentColor = MaterialTheme.colorScheme.onSecondary
+                )
+            ) {
+                Text(
+                    text = "Review",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
         }
     }
 }
@@ -105,6 +124,6 @@ fun ResultScreen(
 @Composable
 private fun ResultScreenPreview() {
     QuestionsTheme {
-        ResultScreen(correctCount = 8, totalCount = 10, onFinish = {})
+        ResultScreen(correctCount = 8, totalCount = 10, onFinish = {}, onReview = {})
     }
 }

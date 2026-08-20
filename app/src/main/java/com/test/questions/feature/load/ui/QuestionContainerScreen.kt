@@ -227,21 +227,20 @@ fun QuestionContainerScreen(
                                                 if (currentIndex < uiState.questions.size - 1) {
                                                     viewModel.updateCurrentQuestion(currentIndex + 1)
                                                 }
+                                                else{
+                                                    viewModel.proceedToNextQuestionWithDelay(isAutomatic = false,noDelay = true)
+                                                }
                                             }
                                         },
                                         enabled = if (quizMode == QuizMode.ANSWER) {
                                             (hasAnswered || timerProgress == 0f) && !isBusy
                                         } else {
-                                            currentIndex < uiState.questions.size - 1 && !isBusy
+                                            !isBusy
                                         },
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Text(
-                                            if (quizMode == QuizMode.ANSWER) {
-                                                if (currentIndex < uiState.questions.size - 1) "Next" else "Finish"
-                                            } else {
-                                                "Next"
-                                            }
+                                            if (currentIndex < uiState.questions.size - 1) "Next" else "Finish"
                                         )
                                     }
                                 }
@@ -257,9 +256,9 @@ fun QuestionContainerScreen(
                                 }
                             },
                             onBack = {
-                                if (currentIndex > 0) {
+                                /*if (currentIndex > 0) {
                                     viewModel.updateCurrentQuestion(currentIndex - 1)
-                                }
+                                }*/
                             },
                             entryDecorators = listOf(
                                 rememberSaveableStateHolderNavEntryDecorator(),

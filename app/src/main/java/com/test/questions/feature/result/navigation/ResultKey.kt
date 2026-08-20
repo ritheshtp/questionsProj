@@ -68,6 +68,9 @@ object ResultScreenModule {
                 onFinish = {
                     navigator.goBack()
                     viewModel.resetQuiz()
+                },
+                onReview = {
+                    navigator.goBack()
                 }
             )
         }
