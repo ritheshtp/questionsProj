@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.test.questions.feature.load.viewModel.QuizMode
 import com.test.questions.ui.theme.QuestionsTheme
 
 @Composable
@@ -33,7 +34,9 @@ fun QuestionScreen(
     options: List<String>,
     userAnswer: Int,
     correctAnswer: Int,
-    timeLeft: Int,
+    timerProgress: Float,
+    showCorrectAnswer: Boolean,
+    quizMode: QuizMode,
     onAnswerSelected: (Int) -> Unit
 ) {
     Column(
@@ -42,75 +45,54 @@ fun QuestionScreen(
             .padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
+        ElevatedCard(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
         ) {
-            ElevatedCard(
-                modifier = Modifier.weight(1f),
-                colors = CardDefaults.elevatedCardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Text(
-                    text = question,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(24.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.size(16.dp))
-
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = "$timeLeft",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = if (timeLeft <= 3) Color.Red else MaterialTheme.colorScheme.primary,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = "sec",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            Text(
+                text = question,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(24.dp)
+            )
         }
 
         Spacer(modifier = Modifier.size(8.dp))
 
         options.forEachIndexed { index, option ->
             val isSelected = userAnswer == index
-            val isCorrect = index == correctAnswer && timeLeft <= 0
-            val isWrongSelection = isSelected && !isCorrect && timeLeft <= 0
-            val showCorrect = (userAnswer != -1) && isCorrect
+            val isCorrect = index == correctAnswer
+            val showResult = showCorrectAnswer || quizMode == QuizMode.REVIEW
 
             val borderColor = when {
-                isWrongSelection -> Color.Red
-                showCorrect -> Color.Green
+                showResult && index == correctAnswer -> Color.Green
+                showResult && isSelected && !isCorrect -> Color.Red
                 isSelected -> MaterialTheme.colorScheme.primary
                 else -> MaterialTheme.colorScheme.outline
             }
 
             val containerColor = when {
-                isWrongSelection -> Color.Red.copy(alpha = 0.1f)
-                showCorrect -> Color.Green.copy(alpha = 0.1f)
+                showResult && index == correctAnswer -> Color.Green.copy(alpha = 0.1f)
+                showResult && isSelected && !isCorrect -> Color.Red.copy(alpha = 0.1f)
                 isSelected -> MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
                 else -> MaterialTheme.colorScheme.surface
             }
 
+            val canSelect = quizMode == QuizMode.ANSWER && !showCorrectAnswer
+            
             OutlinedCard(
-                onClick = { if (timeLeft > 0) onAnswerSelected(index) },
+                onClick = { if (canSelect) onAnswerSelected(index) },
                 modifier = Modifier.fillMaxWidth(),
                 border = BorderStroke(
-                    width = if (isSelected || showCorrect) 2.dp else 1.dp,
+                    width = if (isSelected || (showResult && isCorrect)) 2.dp else 1.dp,
                     color = borderColor
                 ),
                 colors = CardDefaults.outlinedCardColors(
                     containerColor = containerColor
                 ),
-                enabled = timeLeft > 0
+                enabled = canSelect
             ) {
                 Row(
                     modifier = Modifier
@@ -124,14 +106,14 @@ fun QuestionScreen(
                         modifier = Modifier.weight(1f)
                     )
 
-                    if (showCorrect) {
+                    if (showResult && isCorrect) {
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = "Correct",
                             modifier = Modifier.size(24.dp),
                             tint = Color.Green
                         )
-                    } else if (isWrongSelection) {
+                    } else if (showResult && isSelected && !isCorrect) {
                         Icon(
                             imageVector = Icons.Default.Close,
                             contentDescription = "Wrong",

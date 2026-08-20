@@ -8,6 +8,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +36,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -44,6 +51,7 @@ import androidx.navigation3.runtime.rememberNavBackStack
 import androidx.navigation3.ui.NavDisplay
 import com.test.questions.feature.load.viewModel.QuestionContainerViewModel
 import com.test.questions.feature.load.viewModel.QuestionUiState
+import com.test.questions.feature.load.viewModel.QuizMode
 import com.test.questions.feature.question.navigation.QuestionKey
 import com.test.questions.navigation.LocalSharedViewModelStoreOwner
 import com.test.questions.LocalEntryBuilders
@@ -70,8 +78,9 @@ fun QuestionContainerScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val currentIndex by viewModel.currentUserQuestion.collectAsStateWithLifecycle()
     val userAnswers by viewModel.userQuestionAnswers.collectAsStateWithLifecycle()
-    val isTimerRunning by viewModel.isTimerRunning.collectAsStateWithLifecycle()
-    val isTimerFinished by viewModel.isTimerFinished.collectAsStateWithLifecycle()
+    val timerProgress by viewModel.timerProgress.collectAsStateWithLifecycle()
+    val isBusy by viewModel.isBusy.collectAsStateWithLifecycle()
+    val quizMode by viewModel.quizMode.collectAsStateWithLifecycle()
 
     val hasAnswered = remember(userAnswers, currentIndex) {
         userAnswers.containsKey(currentIndex)
@@ -151,38 +160,74 @@ fun QuestionContainerScreen(
                             }
                         },
                         bottomBar = {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-                                FilledTonalButton(
-                                    onClick = {
-                                        if (currentIndex > 0) {
-                                            viewModel.updateCurrentQuestion(currentIndex - 1)
-                                        }
-                                    },
-                                    enabled = currentIndex > 0 && !isTimerRunning,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Text("Previous")
+                            Column {
+                                if (quizMode == QuizMode.ANSWER) {
+                                    val animatedProgress by animateFloatAsState(
+                                        targetValue = timerProgress,
+                                        animationSpec = tween(durationMillis = 100),
+                                        label = "TimerProgressAnimation"
+                                    )
+                                    LinearProgressIndicator(
+                                        progress = { animatedProgress },
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 16.dp)
+                                            .height(8.dp)
+                                            .clip(RoundedCornerShape(4.dp)),
+                                        color = if (timerProgress < 0.3f) Color.Red else MaterialTheme.colorScheme.primary,
+                                        trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                                        strokeCap = StrokeCap.Round
+                                    )
                                 }
-                                if (hasAnswered || isTimerFinished) {
-                                    Spacer(modifier = Modifier.width(16.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    if (quizMode == QuizMode.REVIEW) {
+                                        FilledTonalButton(
+                                            onClick = {
+                                                if (currentIndex > 0) {
+                                                    viewModel.updateCurrentQuestion(currentIndex - 1)
+                                                }
+                                            },
+                                            enabled = currentIndex > 0 && !isBusy,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Text("Previous")
+                                        }
+                                        Spacer(modifier = Modifier.width(16.dp))
+                                    } else {
+                                        // Hidden in ANSWER mode
+                                        Spacer(modifier = Modifier.weight(1f))
+                                    }
+                                    
                                     Button(
                                         onClick = {
-                                            if (currentIndex < uiState.questions.size - 1) {
-                                                viewModel.updateCurrentQuestion(currentIndex + 1)
+                                            if (quizMode == QuizMode.ANSWER) {
+                                                viewModel.proceedToNextQuestionWithDelay(isAutomatic = false)
+                                            } else {
+                                                if (currentIndex < uiState.questions.size - 1) {
+                                                    viewModel.updateCurrentQuestion(currentIndex + 1)
+                                                }
                                             }
                                         },
-                                        enabled = currentIndex < uiState.questions.size - 1,
+                                        enabled = if (quizMode == QuizMode.ANSWER) {
+                                            (hasAnswered || timerProgress == 0f) && !isBusy
+                                        } else {
+                                            currentIndex < uiState.questions.size - 1 && !isBusy
+                                        },
                                         modifier = Modifier.weight(1f)
                                     ) {
-                                        Text("Next")
+                                        Text(
+                                            if (quizMode == QuizMode.ANSWER) {
+                                                if (currentIndex < uiState.questions.size - 1) "Next" else "Finish"
+                                            } else {
+                                                "Next"
+                                            }
+                                        )
                                     }
-                                } else {
-                                    Spacer(modifier = Modifier.weight(1f))
                                 }
                             }
                         }

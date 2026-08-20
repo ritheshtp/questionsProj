@@ -13,8 +13,8 @@ import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
 import com.test.questions.feature.load.viewModel.QuestionContainerViewModel
 import com.test.questions.feature.load.viewModel.QuestionUiState
+import com.test.questions.feature.load.viewModel.QuizMode
 import com.test.questions.feature.question.ui.QuestionScreen
-import com.test.questions.feature.question.viewModel.QuestionViewModel
 import com.test.questions.navigation.LocalSharedViewModelStoreOwner
 import dagger.Module
 import dagger.Provides
@@ -36,34 +36,18 @@ object QuestionScreenModule {
         entry<QuestionKey> { key ->
             val parentOwner = LocalSharedViewModelStoreOwner.current
             val containerViewModel = hiltViewModel<QuestionContainerViewModel>(viewModelStoreOwner = parentOwner)
-            val questionViewModel = hiltViewModel<QuestionViewModel>()
 
             val state by containerViewModel.uiState.collectAsStateWithLifecycle()
             val userAnswers by containerViewModel.userQuestionAnswers.collectAsStateWithLifecycle()
             val userAnswer = remember(userAnswers, state) { userAnswers[key.questionId] ?: -1 }
 
-            val timeLeft by questionViewModel.timeLeft.collectAsStateWithLifecycle()
-            val isTimerRunning by questionViewModel.isTimerRunning.collectAsStateWithLifecycle()
-            val isTimerFinished by questionViewModel.isTimerFinished.collectAsStateWithLifecycle()
+            val timerProgress by containerViewModel.timerProgress.collectAsStateWithLifecycle()
+            val showCorrectAnswer by containerViewModel.showCorrectAnswer.collectAsStateWithLifecycle()
+            val quizMode by containerViewModel.quizMode.collectAsStateWithLifecycle()
 
-            LaunchedEffect(key.questionId) {
-                if (userAnswer == -1) {
-                    questionViewModel.startTimer()
-                }
-            }
-
-            LaunchedEffect(isTimerRunning, isTimerFinished) {
-                containerViewModel.setTimerStatus(isTimerRunning, isTimerFinished)
-            }
-
-            LaunchedEffect(Unit) {
-                questionViewModel.timerFinishedSignal.collect {
-                    val currentState = containerViewModel.uiState.value
-                    if (currentState is QuestionUiState.InProgress) {
-                        if (key.questionId < currentState.questions.size - 1) {
-                            containerViewModel.updateCurrentQuestion(key.questionId + 1)
-                        }
-                    }
+            LaunchedEffect(key.questionId, quizMode) {
+                if (userAnswer == -1 && quizMode == QuizMode.ANSWER) {
+                    containerViewModel.startTimer()
                 }
             }
 
@@ -74,7 +58,9 @@ object QuestionScreenModule {
                         options = question.options,
                         userAnswer = userAnswer,
                         correctAnswer = question.answer,
-                        timeLeft = timeLeft,
+                        timerProgress = timerProgress,
+                        showCorrectAnswer = showCorrectAnswer,
+                        quizMode = quizMode,
                         onAnswerSelected = { answerIndex ->
                             containerViewModel.updateUserAnswer(key.questionId, answerIndex)
                         }

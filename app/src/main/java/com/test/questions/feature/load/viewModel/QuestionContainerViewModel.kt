@@ -9,9 +9,13 @@ import com.rith.core.model.QuestionData
 import com.test.questions.R
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
@@ -22,6 +26,10 @@ sealed class QuestionUiState {
     object Loading : QuestionUiState()
     data class Ready(val questions: List<Question>) : QuestionUiState()
     data class InProgress(val questions: List<Question>) : QuestionUiState()
+}
+
+enum class QuizMode {
+    ANSWER, REVIEW
 }
 
 @HiltViewModel
@@ -39,11 +47,20 @@ class QuestionContainerViewModel @Inject constructor(
 
     val currentUserQuestion: StateFlow<Int> = _currentUserQuestion.asStateFlow()
 
-    private val _isTimerRunning = MutableStateFlow(false)
-    val isTimerRunning: StateFlow<Boolean> = _isTimerRunning.asStateFlow()
+    private val _timerProgress = MutableStateFlow(1f)
+    val timerProgress: StateFlow<Float> = _timerProgress.asStateFlow()
 
-    private val _isTimerFinished = MutableStateFlow(false)
-    val isTimerFinished: StateFlow<Boolean> = _isTimerFinished.asStateFlow()
+    private val _isBusy = MutableStateFlow(false)
+    val isBusy: StateFlow<Boolean> = _isBusy.asStateFlow()
+
+    private val _showCorrectAnswer = MutableStateFlow(false)
+    val showCorrectAnswer: StateFlow<Boolean> = _showCorrectAnswer.asStateFlow()
+
+    private val _quizMode = MutableStateFlow(QuizMode.ANSWER)
+    val quizMode: StateFlow<QuizMode> = _quizMode.asStateFlow()
+
+    private var timerJob: Job? = null
+    private val MAX_TIME = 10L
 
     init {
         loadQuestions()
@@ -70,18 +87,73 @@ class QuestionContainerViewModel @Inject constructor(
     }
 
     fun updateUserAnswer(questionIndex: Int, answerIndex: Int) {
+        if (_quizMode.value != QuizMode.ANSWER) return
         val currentState = _uiState.value
         if (currentState is QuestionUiState.InProgress) {
             _userQuestionAnswers.value += (questionIndex to answerIndex)
         }
     }
 
-    fun updateCurrentQuestion(questionIndex: Int){
+    fun updateCurrentQuestion(questionIndex: Int) {
+        stopTimer()
+        _isBusy.value = false
+        _showCorrectAnswer.value = false
+        _timerProgress.value = 1f
         _currentUserQuestion.value = questionIndex
     }
 
-    fun setTimerStatus(isRunning: Boolean, isFinished: Boolean) {
-        _isTimerRunning.value = isRunning
-        _isTimerFinished.value = isFinished
+    fun startTimer() {
+        if (_quizMode.value != QuizMode.ANSWER) return
+        if (timerJob?.isActive == true) return
+        
+        timerJob = viewModelScope.launch {
+            _timerProgress.value = 1f
+            
+            val totalTicks = MAX_TIME * 10 // 100ms intervals for smooth progress
+            for (tick in totalTicks downTo 0) {
+                if (_isBusy.value) break // Stop if we become busy (e.g. answer reveal)
+                _timerProgress.value = tick.toFloat() / totalTicks
+                delay(100)
+            }
+            
+            if (!_isBusy.value) {
+                proceedToNextQuestionWithDelay(isAutomatic = true)
+            }
+        }
+    }
+
+    fun stopTimer() {
+        timerJob?.cancel()
+    }
+
+    fun proceedToNextQuestionWithDelay(isAutomatic: Boolean = false) {
+        if (_isBusy.value) return
+        
+        viewModelScope.launch {
+            _isBusy.value = true
+            stopTimer()
+            _showCorrectAnswer.value = true
+            
+            delay(1000) // 1 second delay as requested
+            
+            val currentState = _uiState.value
+            if (currentState is QuestionUiState.InProgress) {
+                val isLastQuestion = _currentUserQuestion.value >= currentState.questions.size - 1
+                if (isLastQuestion) {
+                    if (!isAutomatic) {
+                        // Manual Finish: switch to Review mode and stay on current question
+                        _quizMode.value = QuizMode.REVIEW
+                        _isBusy.value = false
+                        // We don't reset _showCorrectAnswer because Review mode shows it
+                    } else {
+                        // Automatic expiry on last question: stay here, show result
+                        _isBusy.value = false
+                    }
+                } else {
+                    // Move to next question
+                    updateCurrentQuestion(_currentUserQuestion.value + 1)
+                }
+            }
+        }
     }
 }
